@@ -1,0 +1,87 @@
+- [ ] The Nameless Day - Sara Douglass (3)
+- [ ] Daughter of the Blood - Anne Bishop (3)
+- [ ] Hades' Daughter - Sara Douglass (3)
+- [ ] Fragile Things - Neil Gaiman
+- [ ] Trigger Warning - Neil Gaiman
+- [ ] Dungeon Crawler Carl - Matt Dinniman
+- [ ] Hagen Von Tronje - Wolfgang Hohlbein
+- [ ] Die Stadt der Träumenden Bücher - Walter Moers
+- [ ] Sword of Destiny - Andrzej Sapkowski
+- [ ] Die Tore der Welt - Ken Follett (3)
+- [ ] Hannibal - Gisbert Haefs
+- [ ] The Grace of Kings - Ken Liu (3)
+- [ ] Narrenturm - Andrzej Sapkowski
+- [ ] Laurus - Eigene Vodolazkin
+- [ ] Das Geisterhaus - Isabel Allende
+- [ ] Fahrenheit 451 - Ray Bradbury
+- [ ] Alice's Adventures in Wonderland - Lewis Carroll
+- [ ] The Alchemist - Paul Coelho
+- [ ] Die Physiker - Friedrich Dürrenmatt
+- [ ] Der Richter und sein Henker - Friedrich Dürrenmatt
+- [ ] Der Besuch der alten Dame - Friedrich Dürrenmatt
+- [ ] Der Verdacht - Friedrich Dürrenmatt
+- [ ] Der Tod in Venedig - Thomas Mann
+- [ ] Petals of Blood - Ngugi wa Thiongo
+- [ ] Midnight's Children - Salman Rushdie
+- [ ] American Psycho - Bret Easton Ellis
+- [ ] To Kill a Mockingbird - Harper Lee
+- [ ] Catch-22 - Joseph Heller
+- [ ] 1984 - George Orwell
+- [ ] Animal Farm - George Orwell
+- [ ] The Road to Wigan Pier - George Orwell
+- [ ] Gravity's Rainbow - Thomas Pynchon
+- [ ] König Ödipus - Sophokles
+- [ ] Antigone - Sophokles
+- [ ] War of the Worlds - H.G. Wells
+- [ ] Anna Karenina - Leo Tolstoy
+- [ ] Consider Phlebas - Iain Banks
+- [ ] The Naked Sun - Isaac Asimov
+- [ ] The Hydrogen Sonata - Iain Banks
+- [ ] The State of the Art - Iain Banks
+- [ ] The Wasp Factory - Iain Banks
+- [ ] Childhood's End - Arthur C. Clarke
+- [ ] The Black Hole - Alan Dean Foster
+- [ ] Science Fiction - R.A. Hogan
+- [ ] The Left Hand of Darkness - Ursula LeGuin
+- [ ] Pilot Prix - Stanislaw Lem
+- [ ] A View from the Stars - Cixin Liu
+- [ ] Ball Lightning - Cixin Liu
+- [ ] Hołd Up the Sky - Cixin Liu
+- [ ] Spiegel - Cixin Liu
+- [ ] The Mote in God's Eye - Larry Niven
+- [ ] Habibi - Craig Thompson
+- [ ] The Killing Joke - Alan Moore
+- [ ] Neonomicon - Alan Moore
+- [ ] Saga - Brian Vaughan
+- [ ] Oryx & Crake - Margaret Atwood (2)
+- [ ] Wastelands - John Joseph Adams
+- [ ] Pump Six - Paolo Bagigalupi
+- [ ] World War Z - Max Brooks
+- [ ] Metro 2033 - Dmitry Glukovsky
+- [ ] The Stand - Stephen King
+- [ ] Gone Girl - Gillian Flynn
+- [ ] Tote Seelen Singen Nicht - Adler Olsen
+- [ ] Abgeschnitten - Fitzek
+- [ ] The Dry - Jane Harper
+- [ ] Hologrammatika - Tom Hillenbrand
+- [ ] Qube - Tom Hillenbrand
+- [ ] Ihr Königreich - Jo Nesbo
+- [ ] Macbeth - Jo Nesbo
+- [ ] Coma - John Niven
+- [ ] Der Neunte Arm des Oktopus - Dirk Rossmann
+- [ ] The Ghosts of Altona - Craig Russell
+- [ ] Kitchen Confidential - Anthony Bourdain
+- [ ] The Elegance of the Hedgehog - Muriel Barberry
+- [ ] My Brilliant Friend - Elena Ferrante (2)
+- [ ] Der Polnische Boxer - Eduardo Halfon
+- [ ] Never Let Me Go - Kazuo Ishiguro
+- [ ] Anilin - Kaschenzinger
+- [ ] The Unbearable Lightness of Being - Milan Kundera
+- [ ] The Book of Scotlands
+- [ ] Only Love is Real - Brian Weiss
+- [ ] The Cutting Room - Louise Welsh
+- [ ] The Book of Tea - Kakuzo Okakura
+- [ ] Wild Swans - Jung Chang
+- [ ] Begrabt mein Herz an der Biegung des Flusses - Dee Brown
+- [ ] Long Way Down - Ewan McGregor
+- [ ] The South Pole Expedition - Roald Amundsen

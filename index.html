@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Bookwheel</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f0f3f7;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --accent-dark: #1d4ed8;
+  --success: #10b981;
+  --danger: #ef4444;
+  --border: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.12), 0 4px 12px rgba(15,23,42,0.06);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --wheel-colors: #FFD166, #06D6A0, #118AB2, #073B4C, #EF476F, #F78C6B;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body); background: var(--bg); color: var(--text);
+  min-height: 100dvh; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; line-height: 1.5;
+}
+
+/* ── Utilities ── */
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { 0% { opacity: 0; transform: scale(0.85) translateY(16px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes confetti-fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+/* ── Layout Shell ── */
+.app-shell { max-width: 480px; margin: 0 auto; padding: 0 16px 32px; min-height: 100dvh; }
+
+/* ── Header ── */
+.app-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 12px; position: sticky; top: 0; z-index: 100; background: var(--bg); }
+.app-header h1 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; color: var(--text); }
+.app-header h1 span { color: var(--accent); }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-body); font-size: 0.875rem; font-weight: 600; padding: 10px 18px; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s ease; min-height: 44px; }
+.btn:active { transform: scale(0.96); }
+.btn-outline { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
+
+/* ── Upload Screen ── */
+.upload-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80dvh; text-align: center; gap: 24px; animation: fadeIn 0.5s ease-out; }
+.upload-icon { width: 80px; height: 80px; background: var(--accent-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.upload-screen h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; }
+.upload-screen p { color: var(--text-muted); max-width: 300px; line-height: 1.6; }
+.upload-zone { width: 100%; max-width: 340px; border: 2px dashed var(--border); border-radius: var(--radius-lg); padding: 36px 24px; cursor: pointer; transition: all 0.2s ease; background: var(--surface); }
+.upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+.upload-zone input { display: none; }
+.upload-zone-label { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem; }
+.upload-zone-label strong { color: var(--accent); font-size: 1rem; }
+
+/* ── Wheel Section ── */
+.wheel-section { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 8px 0 24px; }
+.wheel-container { position: relative; width: 100%; max-width: 360px; aspect-ratio: 1; }
+.wheel-canvas { width: 100%; height: 100%; display: block; filter: drop-shadow(0 8px 24px rgba(15,23,42,0.12)); }
+.wheel-pointer { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 28px solid var(--text); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); z-index: 10; }
+.wheel-center-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; border-radius: 50%; background: var(--surface); border: 4px solid var(--text); font-family: var(--font-display); font-size: 0.95rem; font-weight: 400; letter-spacing: 0.08em; color: var(--text); cursor: pointer; z-index: 11; box-shadow: var(--shadow-md); transition: all 0.15s ease; }
+.wheel-center-btn:active { transform: translate(-50%, -50%) scale(0.92); }
+.wheel-center-btn.spinning { pointer-events: none; opacity: 0.6; }
+.wheel-stats { font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+
+/* ── Inline Expansion Details (Shared by Winner & Library) ── */
+.detail-content-wrapper { display: flex; gap: 16px; align-items: flex-start; text-align: left;}
+.detail-cover { width: 80px; height: 120px; border-radius: 8px; object-fit: cover; box-shadow: var(--shadow-sm); background: var(--border); flex-shrink: 0;}
+.detail-info { flex: 1; min-width: 0; }
+.detail-desc { font-size: 0.9rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; }
+
+.meta-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.meta-tag { background: #f1f5f9; color: var(--text-muted); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); }
+.genre-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.genre-tag { background: var(--accent-light); color: var(--accent-dark); padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+.source-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; background: #e2e8f0; color: #475569; }
+.source-google { background: #dbeafe; color: #1e3a8a; }
+.source-wiki { background: #f3f4f6; color: #111827; }
+.goodreads-btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 10px; background: var(--text); color: white; text-decoration: none; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: bold; box-shadow: var(--shadow-sm); }
+.goodreads-btn:active { transform: scale(0.98); }
+
+.translation-note { font-size: 0.75rem; color: var(--text-faint); margin-bottom: 8px; font-style: italic; }
+
+/* Shimmer Loading */
+.shimmer-line { height: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--border) 25%, #f1f5f9 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 8px; }
+.shimmer-box { width: 80px; height: 120px; border-radius: 8px; background: linear-gradient(90deg, var(--border) 25%, #f1f5f9 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; flex-shrink: 0;}
+
+/* ── Winner Card ── */
+.winner-card { width: 100%; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; transition: box-shadow 0.2s, transform 0.15s; text-align: center; border: 2px solid var(--accent); margin-bottom: 20px;}
+.winner-card-banner { background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%); padding: 12px 20px; color: #fff; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.winner-card-body { padding: 20px; }
+.winner-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 400; line-height: 1.2; margin-bottom: 4px; color: var(--text); }
+.winner-author { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; }
+.winner-prompt { display: inline-block; font-size: 0.85rem; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 4px 12px; border-radius: 20px;}
+
+.winner-card:not(.expanded):hover { box-shadow: var(--shadow-xl); transform: translateY(-2px); }
+.winner-card:not(.expanded):active { transform: translateY(0) scale(0.99); }
+.winner-card.expanded { cursor: default; }
+
+.winner-card-details { padding: 0 20px 20px; border-top: 1px solid var(--border); margin-top: 12px; padding-top: 16px; display: none; }
+.winner-card.expanded .winner-card-details { display: block; animation: fadeIn 0.3s ease; }
+
+/* ── Library Panel ── */
+.library-section { margin-top: 8px; }
+.library-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text); transition: all 0.15s; }
+.library-toggle:hover { border-color: var(--accent); }
+.library-toggle .chevron { transition: transform 0.25s ease; font-size: 1.1rem; }
+.library-toggle.open .chevron { transform: rotate(180deg); }
+.progress-badge { background: var(--accent-light); color: var(--accent); font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; margin-left: 10px;}
+
+.library-panel { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+.library-panel.open { max-height: 80vh; overflow-y: auto; }
+.library-inner { padding: 16px 0; display: flex; flex-direction: column; gap: 12px; }
+.search-box { width: 100%; padding: 12px 16px 12px 42px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center; outline: none; }
+.search-box:focus { border-color: var(--accent); }
+
+.book-list { display: flex; flex-direction: column; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); }
+.book-item { display: flex; flex-direction: column; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.book-item:last-child { border-bottom: none; }
+.book-main-row { display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; }
+.book-item.filtered-out { display: none; }
+
+.book-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; background: #fff; flex-shrink: 0;}
+.book-item.read .book-checkbox { background: var(--success); border-color: var(--success); }
+.book-checkbox-tick { display: none; color: #fff; font-size: 0.75rem; font-weight: 700; }
+.book-item.read .book-checkbox-tick { display: block; }
+.book-title-text { flex: 1; font-size: 0.95rem; line-height: 1.3; font-weight: 500;}
+.book-item.read .book-title-text { text-decoration: line-through; color: var(--text-faint); }
+
+.book-info-btn { width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; cursor: pointer; font-size: 1rem; color: var(--primary); transition: all 0.2s; flex-shrink: 0;}
+.book-info-btn:hover { background: var(--accent-light); }
+.book-info-btn.active { background: var(--accent-light); color: var(--accent-dark); transform: rotate(180deg); }
+
+.inline-details { width: 100%; margin-top: 12px; padding-top: 14px; border-top: 1px dashed var(--border); display: none; }
+.inline-details.open { display: block; animation: fadeIn 0.3s ease; cursor: default; }
+
+/* ── Footer Actions ── */
+.footer-actions { display: flex; gap: 10px; margin-top: 20px; }
+.footer-actions .btn { flex: 1; }
+
+/* ── Confetti ── */
+.confetti-piece { position: fixed; top: -10px; z-index: 9999; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="app-shell" id="app">
+  
+  <header class="app-header" id="appHeader" style="display:none;">
+    <h1>Book<span>wheel</span></h1>
+  </header>
+
+  <div class="upload-screen" id="uploadScreen">
+    <div class="upload-icon">📚</div>
+    <h2>Your next read awaits</h2>
+    <p>Upload a markdown checklist of books and let the wheel decide what you read next.</p>
+    <div class="upload-zone" id="uploadZone">
+      <label class="upload-zone-label" for="fileInput">
+        <span style="font-size:1.6rem;">📄</span>
+        <strong>Choose file or drop here</strong>
+        <span>.txt or .md checklist</span>
+      </label>
+      <input type="file" id="fileInput" accept=".txt,.md">
+    </div>
+  </div>
+
+  <main id="mainApp" style="display:none;">
+    
+    <section class="wheel-section" id="wheelSection">
+      <div class="wheel-container" id="wheelContainer">
+        <div class="wheel-pointer" id="wheelPointer"></div>
+        <canvas class="wheel-canvas" id="wheelCanvas" width="800" height="800"></canvas>
+        <button class="wheel-center-btn" id="spinBtn">SPIN</button>
+      </div>
+      <div class="wheel-stats" id="wheelStats"></div>
+    </section>
+
+    <div id="winnerArea"></div>
+
+    <section class="library-section">
+      <button class="library-toggle" id="libraryToggle">
+        <div><span>📖 Library</span><span class="progress-badge" id="progressBadge"></span></div>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="library-panel" id="libraryPanel">
+        <div class="library-inner">
+          <input class="search-box" id="searchBox" type="text" placeholder="Search books…">
+          <div class="book-list" id="bookList"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <button class="btn btn-outline" id="btnExportFooter">📥 Export Progress</button>
+      <button class="btn btn-danger" id="btnResetFooter">⚠️ Reset</button>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+let books = [];
+let unreadBooks = [];
+let wheelDisplayBooks = []; 
+let spinning = false;
+const STORAGE_KEY = 'bookwheel_data';
+const WHEEL_COLORS = ['#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#EF476F', '#F78C6B'];
+const MAX_WHEEL_SLICES = 30;
+
+// DOM Refs
+const $ = id => document.getElementById(id);
+const uploadScreen = $('uploadScreen'), mainApp = $('mainApp'), appHeader = $('appHeader');
+const wheelCanvas = $('wheelCanvas'), ctx = wheelCanvas.getContext('2d');
+const spinBtn = $('spinBtn'), wheelStats = $('wheelStats'), winnerArea = $('winnerArea');
+const libraryToggle = $('libraryToggle'), libraryPanel = $('libraryPanel');
+const progressBadge = $('progressBadge'), searchBox = $('searchBox'), bookList = $('bookList');
+let currentRotation = 0;
+
+// 1. Initialization
+async function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      books = JSON.parse(saved);
+      if (books.length) { showApp(); return; }
+    } catch(e) {}
+  } else {
+    try {
+      const res = await fetch('Book List.txt');
+      if (res.ok) {
+        const text = await res.text();
+        parseFile(text);
+        if(books.length) { showApp(); return; }
+      }
+    } catch(e) {}
+  }
+  showUpload();
+}
+
+function showUpload() { uploadScreen.style.display = ''; mainApp.style.display = 'none'; appHeader.style.display = 'none'; }
+function showApp() { uploadScreen.style.display = 'none'; mainApp.style.display = ''; appHeader.style.display = 'flex'; mainApp.classList.add('fade-in'); updateData(); }
+function saveToDevice() { localStorage.setItem(STORAGE_KEY, JSON.stringify(books)); }
+
+// 2. Intelligent Parsing
+function parseFile(text) {
+  books = [];
+  const lines = text.split(/\r?\n/);
+  lines.forEach((line, index) => {
+    const match = line.match(/^([*+-]) (\\?\[( |x|X)\\?\]) (.*)/);
+    if (match) {
+      const rawString = match[4].trim();
+      let searchTitle = rawString, localAuthor = "Unknown";
+      if (rawString.includes(' - ')) {
+        const parts = rawString.split(' - ');
+        searchTitle = parts[0].trim();
+        localAuthor = parts.slice(1).join(' - ').replace(/\(\d+\)/g, '').trim(); 
+      }
+      searchTitle = searchTitle.replace(/\(\d+\)/g, '').trim();
+      books.push({ 
+        id: index, displayString: rawString, searchTitle: searchTitle, localAuthor: localAuthor, 
+        read: match[2].toLowerCase().includes('x'), bullet: match[1], originalBox: match[2]
+      });
+    }
+  });
+  saveToDevice();
+}
+
+$('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { parseFile(ev.target.result); if(books.length) showApp(); else alert("No books found."); };
+  reader.readAsText(file);
+});
+
+// 3. UI Toggles & Library Render
+libraryToggle.addEventListener('click', () => {
+  libraryPanel.classList.toggle('open');
+  libraryToggle.classList.toggle('open');
+});
+
+function updateData() {
+  unreadBooks = books.filter(b => !b.read);
+  wheelDisplayBooks = [...unreadBooks].sort(() => 0.5 - Math.random()).slice(0, MAX_WHEEL_SLICES);
+  renderLibrary(); 
+  drawWheel(currentRotation);
+}
+
+function renderLibrary() {
+  bookList.innerHTML = '';
+  let readCount = 0;
+  books.forEach(book => {
+    if(book.read) readCount++;
+    const el = document.createElement('div');
+    el.className = 'book-item' + (book.read ? ' read' : '');
+    el.id = `item-${book.id}`;
+    
+    el.innerHTML = `
+      <div class="book-main-row">
+        <div class="book-checkbox"><span class="book-checkbox-tick">✓</span></div>
+        <span class="book-title-text">${escHtml(book.displayString)}</span>
+        <button class="book-info-btn" title="Book info">ℹ️</button>
+      </div>`;
+
+    const toggleRead = () => {
+      book.read = !book.read; el.classList.toggle('read', book.read);
+      saveToDevice(); updateData(); filterBooks(); winnerArea.innerHTML = '';
+    };
+    
+    const infoBtn = el.querySelector('.book-info-btn');
+
+    el.querySelector('.book-checkbox').addEventListener('click', e => { e.stopPropagation(); toggleRead(); });
+    el.querySelector('.book-title-text').addEventListener('click', e => { e.stopPropagation(); toggleRead(); });
+    
+    infoBtn.addEventListener('click', e => { 
+        e.stopPropagation(); 
+        toggleInlineDetails(book, el, infoBtn); 
+    });
+
+    bookList.appendChild(el);
+  });
+  
+  const unread = books.length - readCount;
+  wheelStats.innerHTML = `<strong>${unread}</strong> unread of <strong>${books.length}</strong> books`;
+  progressBadge.textContent = `${readCount} / ${books.length}`;
+  spinBtn.style.display = unread === 0 ? 'none' : '';
+}
+
+function filterBooks() {
+  const q = searchBox.value.toLowerCase();
+  books.forEach(book => {
+    const el = document.getElementById(`item-${book.id}`);
+    if (el) el.classList.toggle('filtered-out', !book.displayString.toLowerCase().includes(q));
+  });
+}
+searchBox.addEventListener('input', filterBooks);
+
+// Inline Expansion Logic (Library)
+function toggleInlineDetails(book, itemEl, btn) {
+    let detailsDiv = itemEl.querySelector('.inline-details');
+    
+    if (detailsDiv) {
+        detailsDiv.remove();
+        btn.classList.remove('active');
+        btn.innerHTML = 'ℹ️';
+    } else {
+        // Close others
+        document.querySelectorAll('.inline-details').forEach(el => el.remove());
+        document.querySelectorAll('.book-info-btn.active').forEach(b => {
+            b.classList.remove('active'); b.innerHTML = 'ℹ️';
+        });
+
+        btn.classList.add('active');
+        btn.innerHTML = '✕';
+
+        detailsDiv = document.createElement('div');
+        detailsDiv.className = 'inline-details open';
+        detailsDiv.innerHTML = getShimmerHTML();
+        itemEl.appendChild(detailsDiv);
+        
+        runWaterfallAPI(book, detailsDiv);
+    }
+}
+
+function getShimmerHTML() {
+    return `
+      <div class="detail-content-wrapper">
+        <div class="shimmer-box"></div>
+        <div class="detail-info">
+          <div class="shimmer-line" style="width:100%"></div>
+          <div class="shimmer-line" style="width:80%"></div>
+          <div class="shimmer-line" style="width:90%"></div>
+        </div>
+      </div>`;
+}
+
+// 4. Draw Wheel
+function drawWheel(rotationAngle) {
+  const dpr = window.devicePixelRatio || 1; const rect = wheelCanvas.getBoundingClientRect() || {width: 320};
+  const size = Math.round(rect.width || 320);
+  wheelCanvas.width = size * dpr; wheelCanvas.height = size * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const cx = size / 2, cy = size / 2, radius = cx - 4;
+  const count = wheelDisplayBooks.length;
+
+  ctx.clearRect(0, 0, size, size);
+  if (count === 0) {
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fillStyle = '#e2e8f0'; ctx.fill();
+    ctx.fillStyle = '#64748b'; ctx.font = `600 ${size * 0.05}px "DM Sans", sans-serif`; ctx.textAlign = 'center'; ctx.fillText('All books read! 🎉', cx, cy);
+    return;
+  }
+
+  const sliceAngle = (Math.PI * 2) / count;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotationAngle - Math.PI / 2);
+
+  for (let i = 0; i < count; i++) {
+    const startAngle = i * sliceAngle;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, radius, startAngle, startAngle + sliceAngle);
+    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length]; ctx.fill();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.save(); ctx.rotate(startAngle + sliceAngle / 2);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    const fontSize = Math.max(12, Math.min(18, size * 0.04));
+    ctx.font = `bold ${fontSize}px "DM Sans", sans-serif`;
+    
+    let text = wheelDisplayBooks[i].searchTitle;
+    const maxLen = Math.floor(radius * 0.55 / (fontSize * 0.5));
+    if (text.length > maxLen) text = text.substring(0, maxLen - 1) + '…';
+
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 4;
+    ctx.fillText(text, radius - 35, 0); ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(0, 0, radius * 0.16, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.stroke(); ctx.restore();
+}
+
+// 5. Spin Animation
+spinBtn.addEventListener('click', () => {
+  if (spinning || unreadBooks.length === 0) return;
+  spinning = true; spinBtn.classList.add('spinning'); winnerArea.innerHTML = '';
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  const currentWinner = unreadBooks[Math.floor(Math.random() * unreadBooks.length)];
+  const duration = 4500;
+  const startRotation = currentRotation;
+  const totalRotation = startRotation + (Math.PI * 2 * (6 + Math.random() * 6));
+
+  const numSlices = Math.min(MAX_WHEEL_SLICES, unreadBooks.length);
+  const sliceAngle = (2 * Math.PI) / numSlices;
+  const finalNormalizedRotation = totalRotation % (2 * Math.PI);
+  const topAngle = (2 * Math.PI - finalNormalizedRotation) % (2 * Math.PI);
+  const winningSliceIndex = Math.floor(topAngle / sliceAngle);
+
+  wheelDisplayBooks = [...unreadBooks].sort(() => 0.5 - Math.random()).slice(0, MAX_WHEEL_SLICES);
+  wheelDisplayBooks[winningSliceIndex] = currentWinner;
+
+  const startTime = performance.now();
+
+  function animate(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    currentRotation = startRotation + (totalRotation - startRotation) * eased;
+    
+    drawWheel(currentRotation);
+
+    if (progress < 1) requestAnimationFrame(animate);
+    else {
+      spinning = false; spinBtn.classList.remove('spinning');
+      if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+      
+      showWinner(currentWinner); launchConfetti();
+    }
+  }
+  requestAnimationFrame(animate);
+});
+
+function showWinner(book) {
+  winnerArea.innerHTML = `
+    <div class="winner-card" id="winnerCard">
+      <div class="winner-card-banner">✨ Your next read</div>
+      <div class="winner-card-body">
+        <h3 class="winner-title">${escHtml(book.searchTitle)}</h3>
+        <div class="winner-author">${escHtml(book.localAuthor !== "Unknown" ? `by ${book.localAuthor}` : "")}</div>
+        <div class="winner-prompt" id="winnerPrompt">👆 Tap to expand details</div>
+      </div>
+      <div class="winner-card-details" id="winnerDetails"></div>
+    </div>`;
+
+  const card = $('winnerCard');
+  card.addEventListener('click', function() {
+      if (this.classList.contains('expanded')) return;
+      this.classList.add('expanded');
+      $('winnerPrompt').style.display = 'none';
+      
+      const detailsDiv = $('winnerDetails');
+      detailsDiv.innerHTML = getShimmerHTML();
+      runWaterfallAPI(book, detailsDiv);
+  });
+}
+
+// 6. API Waterfall (Anti-Author Google & Wikipedia)
+async function fetchWikiExtract(titleStr) {
+  try {
+    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(titleStr)}&format=json&origin=*`);
+    const data = await res.json();
+    const pages = data.query.pages; const pageId = Object.keys(pages)[0];
+    if (pageId !== "-1" && pages[pageId].extract) return pages[pageId].extract;
+  } catch(e) {}
+  return null;
+}
+
+async function runWaterfallAPI(bookObj, targetContainer) {
+  let desc = null, cover = null, metaHtml = '', genresHtml = '';
+  let author = bookObj.localAuthor !== "Unknown" ? `by ${bookObj.localAuthor}` : "Author Unknown";
+  let sourceStr = '';
+  let translationNote = '';
+  let searchTitle = bookObj.searchTitle;
+
+  try {
+    // 1. Google Books (Natural Search)
+    let q = encodeURIComponent(searchTitle + (bookObj.localAuthor !== "Unknown" ? " " + bookObj.localAuthor : ""));
+    let gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&langRestrict=en&maxResults=1`);
+    let gbData = await gbRes.json();
+    
+    // 1b. Try without language restriction if no results
+    if (!gbData.items || gbData.items.length === 0) {
+        gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
+        gbData = await gbRes.json();
+    }
+    
+    // 1c. Translation Fallback via MyMemory
+    if (!gbData.items || gbData.items.length === 0) {
+        try {
+            const transRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(searchTitle)}&langpair=auto|en`);
+            const transData = await transRes.json();
+            const tText = transData.responseData?.translatedText;
+            
+            // Only accept if it doesn't contain error warnings
+            if (tText && !tText.toUpperCase().includes("MYMEMORY") && !tText.toUpperCase().includes("INVALID SOURCE LANGUAGE") && !tText.toUpperCase().includes("AUTO")) {
+                searchTitle = tText;
+                translationNote = `<div class="translation-note">English Ref: ${escHtml(searchTitle)}</div>`;
+                
+                q = encodeURIComponent(searchTitle + (bookObj.localAuthor !== "Unknown" ? " " + bookObj.localAuthor : ""));
+                gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&langRestrict=en&maxResults=1`);
+                gbData = await gbRes.json();
+            }
+        } catch(e) {}
+    }
+
+    if (gbData.items && gbData.items.length > 0) {
+      const info = gbData.items[0].volumeInfo;
+      // Only overwrite local author if ours is unknown or theirs is better
+      if (info.authors && bookObj.localAuthor === "Unknown") author = `by ${info.authors.join(', ')}`;
+      if (info.imageLinks?.thumbnail) cover = info.imageLinks.thumbnail.replace('http:', 'https:');
+      if (info.description) { desc = info.description; sourceStr = `<span class="source-badge source-google">Source: Google Books</span>`; }
+      
+      if (info.publishedDate) metaHtml += `<span class="meta-tag">📅 ${info.publishedDate.substring(0,4)}</span>`;
+      if (info.pageCount) metaHtml += `<span class="meta-tag">📄 ${info.pageCount}p</span>`;
+      if (info.averageRating) metaHtml += `<span class="meta-tag">⭐ ${info.averageRating}/5</span>`;
+      if (info.categories) genresHtml = info.categories.slice(0,3).map(c => `<span class="genre-tag">${c}</span>`).join('');
+    }
+
+    // 2. Wikipedia Fallback with Anti-Author Safeguard
+    if (!desc) {
+      const wikiSearchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTitle + " book")}&utf8=&format=json&origin=*`);
+      const wikiSearchData = await wikiSearchRes.json();
+      
+      if (wikiSearchData.query && wikiSearchData.query.search) {
+         for (let hit of wikiSearchData.query.search) {
+             const hitTitle = hit.title;
+             
+             // Anti-Author: Skip if the Wikipedia result title is likely the author's name
+             if (bookObj.localAuthor !== "Unknown") {
+                 const authorLast = bookObj.localAuthor.split(' ').pop().toLowerCase();
+                 if (authorLast.length > 2 && hitTitle.toLowerCase().includes(authorLast)) {
+                     continue; 
+                 }
+             }
+             
+             let wiki = await fetchWikiExtract(hitTitle);
+             if (wiki && !wiki.toLowerCase().includes("may refer to:") && !wiki.toLowerCase().includes("may also refer to:")) {
+                 desc = wiki; 
+                 sourceStr = `<span class="source-badge source-wiki">Source: Wikipedia</span>`;
+                 if(hitTitle !== searchTitle && !translationNote) {
+                     translationNote = `<div class="translation-note">English Ref: ${escHtml(hitTitle)}</div>`;
+                 }
+                 break; 
+             }
+         }
+      }
+    }
+  } catch(e) {}
+
+  // Build Final HTML
+  const gUrl = `https://www.goodreads.com/search?q=${encodeURIComponent(bookObj.searchTitle)}`;
+  let finalHtml = `<div class="detail-content-wrapper fade-in">`;
+  
+  if (cover) finalHtml += `<img class="detail-cover" src="${cover}" alt="Cover">`;
+  else finalHtml += `<div class="detail-cover" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:var(--accent-light)">📖</div>`;
+  
+  finalHtml += `<div class="detail-info">`;
+  if (sourceStr) finalHtml += `${sourceStr}`;
+  else finalHtml += `<div style="height:4px;"></div>`; 
+  
+  if (translationNote) finalHtml += translationNote;
+  
+  if (genresHtml) finalHtml += `<div class="genre-tags">${genresHtml}</div>`;
+  if (metaHtml) finalHtml += `<div class="meta-tags">${metaHtml}</div>`;
+  if (!metaHtml && !genresHtml) finalHtml += `<div class="meta-tags"><span class="meta-tag" style="font-weight:normal;color:var(--text-faint)">No extra publisher metadata</span></div>`;
+  
+  finalHtml += `<div class="detail-desc">${desc ? escHtml(desc.replace(/<[^>]*>/g, '')) : 'Description could not be found via Google or Wikipedia.'}</div>`;
+  finalHtml += `<a class="goodreads-btn" href="${gUrl}" target="_blank" rel="noopener">🔍 Search on Goodreads</a>`;
+  
+  finalHtml += `</div></div>`;
+  targetContainer.innerHTML = finalHtml;
+}
+
+// 7. Confetti, Export, Reset
+function launchConfetti() {
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div'); p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw'; p.style.background = WHEEL_COLORS[Math.floor(Math.random() * WHEEL_COLORS.length)];
+    p.style.width = (6 + Math.random() * 8) + 'px'; p.style.height = p.style.width;
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.animation = `confetti-fall ${1.5 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`;
+    document.body.appendChild(p); p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+function exportList() {
+  if (!books.length) return;
+  const text = books.map(b => `${b.bullet} [${b.read ? 'x' : ' '}] ${b.displayString}`).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = 'BookList.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function resetApp() {
+  if(!confirm("Clear all data and load a new list?")) return;
+  localStorage.removeItem(STORAGE_KEY); books = []; winnerArea.innerHTML = '';
+  libraryPanel.classList.remove('open'); libraryToggle.classList.remove('open');
+  showUpload();
+}
+
+$('btnExportFooter').addEventListener('click', exportList);
+$('btnResetFooter').addEventListener('click', resetApp);
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// Boot
+init();
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => { if (!spinning && books.length) drawWheel(currentRotation); }, 200);
+});
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+
+})();
+</script>
+</body>
+</html>
